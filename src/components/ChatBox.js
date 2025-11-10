@@ -40,9 +40,28 @@ const ChatBox = ({ messages, setMessages }) => {
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
+      console.error('ChatGPT API 错误详情:', error);
+      console.error('错误响应:', error.response?.data);
+      console.error('错误状态:', error.response?.status);
+
+      let errorContent = '抱歉，发生了错误。\n\n';
+
+      if (error.response) {
+        // 服务器返回了错误响应
+        errorContent += `错误代码: ${error.response.status}\n`;
+        errorContent += `错误信息: ${error.response.data?.error?.message || error.message}`;
+      } else if (error.message.includes('配置')) {
+        // API Key 未配置
+        errorContent += error.message;
+      } else {
+        // 网络错误或其他错误
+        errorContent += `错误: ${error.message}\n`;
+        errorContent += '可能原因: 网络连接问题或需要配置代理访问 OpenAI API';
+      }
+
       const errorMessage = {
         role: 'assistant',
-        content: '抱歉，发生了错误。请检查您的 API 配置或稍后重试。',
+        content: errorContent,
         timestamp: new Date(),
         isError: true
       };
